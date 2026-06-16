@@ -9,6 +9,26 @@ export default function RepoForm() {
   const [selectedFile, setSelectedFile] = useState("");
 const [fileContent, setFileContent] = useState("");
 
+
+const [summary, setSummary] = useState("");
+
+const generateSummary = async (code: string) => {
+  const res = await fetch("/api/summarize", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      code,
+    }),
+  });
+
+  const data = await res.json();
+
+  setSummary(data.summary);
+};
+
+
   const analyzeRepo = async () => {
     const response = await fetch("/api/analyze", {
       method: "POST",
@@ -37,8 +57,12 @@ const [fileContent, setFileContent] = useState("");
   const data = await res.json();
 
   setSelectedFile(filePath);
-  setFileContent(data.content);
+setFileContent(data.content);
+
+await generateSummary(data.content);
 };
+
+
   return (
     <div className="max-w-2xl mx-auto mt-20">
       <h1 className="text-3xl font-bold mb-6">
@@ -79,14 +103,24 @@ const [fileContent, setFileContent] = useState("");
     </div>
 
     <div className="bg-zinc-900 rounded-lg p-4 max-h-[600px] overflow-auto">
-      <h2 className="text-xl font-bold mb-4">
-        {selectedFile || "Select a File"}
-      </h2>
+  <h2 className="text-xl font-bold mb-4">
+    {selectedFile || "Select a File"}
+  </h2>
 
-      <pre className="text-sm whitespace-pre-wrap">
-        {fileContent}
-      </pre>
+  <pre className="text-sm whitespace-pre-wrap">
+    {fileContent}
+  </pre>
+
+  <div className="mt-6 border-t border-zinc-700 pt-4">
+    <h2 className="text-xl font-bold mb-4">
+      AI Summary
+    </h2>
+
+    <div className="whitespace-pre-wrap text-gray-300">
+      {summary || "No summary yet"}
     </div>
+  </div>
+</div>
 
   </div>
 )}
