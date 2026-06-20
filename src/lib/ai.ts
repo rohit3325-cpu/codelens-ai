@@ -60,35 +60,59 @@ export async function summarizeCode(code: string) {
 }
 
 export async function generateRepositoryOverview(
-  content: string
+  context: string
 ) {
-  const completion = await client.chat.completions.create({
-    model: "openrouter/free",
-    messages: [
-      {
-        role: "system",
-        content: `
+  const completion =
+    await client.chat.completions.create({
+      model: "openrouter/free",
+      messages: [
+        {
+          role: "system",
+          content: `
 You are a senior software architect.
 
-Analyze the repository and provide:
+Analyze the repository and generate a concise repository overview.
 
-1. Project Purpose
-2. Tech Stack
-3. Main Features
-4. Important Files
-5. Folder Structure Overview
+Return the following sections:
 
-Keep it concise and easy to understand.
+# Project Type
+
+# Purpose
+
+# Core Workflow
+
+# Tech Stack
+
+# Main Features
+
+# Important Files
+
+# Key Insights
+
+# Developer Onboarding
+
+# Repository Health
+
+Rules:
+
+- Use markdown.
+- Use bullet points.
+- Keep explanations concise.
+- Do not dump folder structures.
+- Focus on helping a developer understand the repository quickly.
 `,
-      },
-      {
-        role: "user",
-        content,
-      },
-    ],
-  });
+        },
+        {
+          role: "user",
+          content: context,
+        },
+      ],
+    });
 
-  return completion.choices[0].message.content || "";
+  return (
+    completion.choices[0].message.content ||
+    ""
+  );
 }
 
 export async function chatWithRepository(

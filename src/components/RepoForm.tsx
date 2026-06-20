@@ -23,6 +23,17 @@ const [insights, setInsights] = useState<any>(null);
 const [architecture, setArchitecture] =
   useState("");
 
+
+  const [activeTab, setActiveTab] =
+useState("overview");
+
+const [isLoading, setIsLoading] =
+  useState(false);
+
+  const [messages, setMessages] = useState<
+  { role: "user" | "assistant"; content: string }[]
+>([]);
+
 const generateSummary = async (code: string) => {
   const res = await fetch("/api/summarize", {
     method: "POST",
@@ -41,36 +52,89 @@ const generateSummary = async (code: string) => {
 
 
   const analyzeRepo = async () => {
-    const response = await fetch("/api/analyze", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ repoUrl }),
-    });
+  try {
+    setIsLoading(true);
 
-const data = await response.json();
+    const response = await fetch(
+      "/api/analyze",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify({
+          repoUrl,
+        }),
+      }
+    );
 
-setResult(data);
+    const data =
+      await response.json();
 
-const insightRes = await fetch(
-  "/api/repository-insights",
+    setResult(data);
+
+    const insightRes =
+      await fetch(
+        "/api/repository-insights",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            repoPath:
+              data.repoPath,
+          }),
+        }
+      );
+
+    const insightData =
+      await insightRes.json();
+
+   await fetch(
+  "/api/repository-overview",
   {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type":
+        "application/json",
     },
     body: JSON.stringify({
       repoPath: data.repoPath,
     }),
   }
+)
+.then((r) => r.json())
+.then((d) =>
+  setOverview(d.overview)
 );
 
-const insightData =
-  await insightRes.json();
+await fetch(
+  "/api/architecture",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type":
+        "application/json",
+    },
+    body: JSON.stringify({
+      repoPath: data.repoPath,
+    }),
+  }
+)
+.then((r) => r.json())
+.then((d) =>
+  setArchitecture(d.diagram)
+);
 
-setInsights(insightData);
-  };
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setIsLoading(false);
+  }
+};
   
   const fetchFileContent = async (filePath: string) => {
   const res = await fetch("/api/file-content", {
@@ -149,6 +213,17 @@ const askRepository = async () => {
   const data = await res.json();
 
   setAnswer(data.answer);
+  setMessages((prev) => [
+  ...prev,
+  { role: "user", content: question },
+]);
+
+setMessages((prev) => [
+  ...prev,
+  { role: "assistant", content: data.answer },
+]);
+
+setQuestion("");
 };
 
 const generateArchitecture =
@@ -174,10 +249,16 @@ const generateArchitecture =
 
   return (
     <div className="max-w-2xl mx-auto mt-20">
-      <h1 className="text-3xl font-bold mb-6">
-        AI Codebase Explainer
-      </h1>
+      <div className="mb-8">
+  <h2 className="text-4xl font-bold">
+    Repository Dashboard
+  </h2>
 
+  <p className="text-zinc-400 mt-2">
+    Explore files, understand architecture,
+    generate summaries and chat with the codebase.
+  </p>
+</div>
       <input
         value={repoUrl}
         onChange={(e) => setRepoUrl(e.target.value)}
@@ -186,11 +267,23 @@ const generateArchitecture =
       />
 
       <button
-        onClick={analyzeRepo}
-        className="mt-4 px-5 py-3 rounded bg-black text-white"
-      >
-        Analyze Repository
-      </button>
+  onClick={analyzeRepo}
+  disabled={isLoading}
+  className="
+    mt-4
+    px-6
+    py-3
+    rounded-xl
+    bg-violet-600
+    hover:bg-violet-700
+    disabled:opacity-50
+    text-white
+  "
+>
+  {isLoading
+    ? "Analyzing..."
+    : "Analyze Repository"}
+</button>
 
 
 {insights && (
@@ -205,11 +298,16 @@ const generateArchitecture =
       </p>
     </div>
 
-    <div className="bg-zinc-900 p-4 rounded-lg">
+    <div className="bg-zinc-800/50
+border border-zinc-700
+rounded-2xl
+p-6
+hover:border-violet-500
+transition-all">
       <p className="text-sm text-gray-400">
         TypeScript
       </p>
-      <p className="text-2xl font-bold">
+      <p className="text-4xl font-bold">
         {insights.typescriptFiles}
       </p>
     </div>
@@ -244,51 +342,186 @@ const generateArchitecture =
   </div>
 )}
 
-      {result && (
+{result && (
+   <div
+    className="
+      mt-12
+      bg-zinc-900/40
+      backdrop-blur-xl
+      border border-zinc-800
+      rounded-3xl
+      p-6 md:p-8
+      shadow-2xl
+    "
+  >
+  <div className="flex gap-3 mt-8 mb-8 overflow-x-auto">
+
+    <button
+      onClick={() =>
+        setActiveTab("overview")
+      }
+      className={
+        activeTab === "overview"
+          ? "bg-violet-600 px-4 py-2 rounded-xl"
+          : "bg-zinc-800 px-4 py-2 rounded-xl"
+      }
+    >
+      Overview
+    </button>
+
+    <button
+      onClick={() =>
+        setActiveTab("files")
+      }
+      className={
+        activeTab === "files"
+          ? "bg-violet-600 px-4 py-2 rounded-xl"
+          : "bg-zinc-800 px-4 py-2 rounded-xl"
+      }
+    >
+      Files
+    </button>
+
+    <button
+      onClick={() =>
+        setActiveTab("chat")
+      }
+      className={
+        activeTab === "chat"
+          ? "bg-violet-600 px-4 py-2 rounded-xl"
+          : "bg-zinc-800 px-4 py-2 rounded-xl"
+      }
+    >
+      Chat
+    </button>
+
+    <button
+      onClick={() =>
+        setActiveTab("architecture")
+      }
+      className={
+        activeTab ===
+        "architecture"
+          ? "bg-violet-600 px-4 py-2 rounded-xl"
+          : "bg-zinc-800 px-4 py-2 rounded-xl"
+      }
+    >
+      Architecture
+    </button>
+
+  </div>
+  
+
+      {/* {result && (
   <button
     onClick={generateOverview}
     className="mt-4 ml-4 px-5 py-3 rounded bg-blue-600 text-white"
   >
     Generate Repository Overview
   </button>
-)}
+)} */}
 
-<button
-  onClick={generateArchitecture}
-  className="mt-4 ml-4 px-5 py-3 rounded bg-purple-600 text-white"
+
+
+    {activeTab === "files" &&
+    result?.files && (
+  <div
+  className="
+    grid
+    grid-cols-1
+    lg:grid-cols-3
+    gap-6
+    mt-8
+  "
 >
-  Generate Architecture
-</button>
 
-    {result?.files && (
-  <div className="grid grid-cols-2 gap-6 mt-8">
+    <div className="bg-zinc-800/50
+border border-zinc-700
+rounded-2xl
+p-5
+lg:col-span-1 max-h-[600px] overflow-auto">
+      <div className="flex items-center gap-2 mb-4">
 
-    <div className="bg-zinc-900 rounded-lg p-4 max-h-[600px] overflow-auto">
-      <h2 className="text-xl font-bold mb-4">
-        Repository Files ({result.totalFiles})
-      </h2>
+  <div className="w-2 h-2 rounded-full bg-violet-500" />
+
+  <h2 className="font-semibold">
+    Explorer
+  </h2>
+
+</div>
 
       {result.files.map((file: string) => (
         <button
           key={file}
           onClick={() => fetchFileContent(file)}
-          className="block w-full text-left py-1 text-green-400 hover:text-blue-400"
+          className="
+block
+w-full
+text-left
+px-3
+py-2
+rounded-lg
+hover:bg-zinc-700
+transition-all
+text-zinc-300
+"
         >
           {file}
         </button>
       ))}
     </div>
 
-    <div className="bg-zinc-900 rounded-lg p-4 max-h-[600px] overflow-auto">
+    <div className="bg-zinc-800/50
+border border-zinc-700
+rounded-2xl
+p-5
+lg:col-span-2">
   <h2 className="text-xl font-bold mb-4">
-    {selectedFile || "Select a File"}
+    <div className="flex items-center justify-between">
+
+  <h2 className="font-semibold">
+    {selectedFile ||
+      "Select a File"}
   </h2>
 
-  <pre className="text-sm whitespace-pre-wrap">
+  <span className="
+    text-xs
+    bg-violet-600
+    px-2
+    py-1
+    rounded-full
+  ">
+    Source
+  </span>
+
+</div>
+  </h2>
+
+  <pre
+  className="
+    mt-4
+    text-sm
+    whitespace-pre-wrap
+    bg-black/30
+    rounded-xl
+    p-4
+    overflow-auto
+    max-h-[500px]
+  "
+>
     {fileContent}
   </pre>
 
-  <div className="mt-6 border-t border-zinc-700 pt-4">
+  <div
+  className="
+    mt-6
+    bg-zinc-900
+    border
+    border-zinc-700
+    rounded-xl
+    p-4
+  "
+>
     <h2 className="text-xl font-bold mb-4">
       AI Summary
     </h2>
@@ -302,18 +535,63 @@ const generateArchitecture =
   </div>
 )}
 
-{overview && (
+{activeTab === "overview" &&
+overview && (
   <div className="mt-8 bg-zinc-900 p-4 rounded-lg">
     <h2 className="text-2xl font-bold mb-4">
       Repository Overview
     </h2>
 
     <div className="whitespace-pre-wrap text-gray-300">
+      <div className="grid md:grid-cols-4 gap-4 mb-8">
+
+  <div className="bg-zinc-800 rounded-2xl p-5">
+    <p className="text-zinc-400">
+      Project Type
+    </p>
+
+    <p className="font-semibold">
+      Repository
+    </p>
+  </div>
+
+  <div className="bg-zinc-800 rounded-2xl p-5">
+    <p className="text-zinc-400">
+      Language
+    </p>
+
+    <p className="font-semibold">
+      TypeScript
+    </p>
+  </div>
+
+  <div className="bg-zinc-800 rounded-2xl p-5">
+    <p className="text-zinc-400">
+      Files
+    </p>
+
+    <p className="font-semibold">
+      {insights?.totalFiles}
+    </p>
+  </div>
+
+  <div className="bg-zinc-800 rounded-2xl p-5">
+    <p className="text-zinc-400">
+      Tests
+    </p>
+
+    <p className="font-semibold">
+      {insights?.testFiles}
+    </p>
+  </div>
+
+</div>
       {overview}
     </div>
   </div>
 )}
 
+{activeTab === "chat" && (
 <div className="mt-8 bg-zinc-900 p-4 rounded-lg">
   <h2 className="text-2xl font-bold mb-4">
     Chat With Repository
@@ -333,14 +611,25 @@ const generateArchitecture =
     Ask
   </button>
 
-  {answer && (
-    <div className="mt-6 whitespace-pre-wrap text-gray-300">
-      {answer}
+  <div className="space-y-4 mb-6">
+  {messages.map((msg, index) => (
+    <div
+      key={index}
+      className={`max-w-[80%] p-4 rounded-2xl ${
+        msg.role === "user"
+          ? "ml-auto bg-violet-600 text-white"
+          : "bg-zinc-800 text-gray-200"
+      }`}
+    >
+      {msg.content}
     </div>
-  )}
+  ))}
 </div>
+</div>
+)}
 
-{architecture && (
+{activeTab === "architecture" &&
+architecture && (
   <div className="mt-8 bg-zinc-900 p-4 rounded-lg">
     <h2 className="text-2xl font-bold mb-4">
       Architecture Diagram
@@ -350,6 +639,8 @@ const generateArchitecture =
   chart={architecture}
 />
   </div>
+)}
+</div>
 )}
     </div>
   );
