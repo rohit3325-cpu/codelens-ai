@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRepositoryContext } from "@/lib/repository";
 import { generateArchitectureDiagram } from "@/lib/ai";
+import { getRepoPath } from "@/lib/github";
 
 export async function POST(
   req: NextRequest
 ) {
   try {
-    const { repoPath } =
+    const { repoId } =
       await req.json();
 
     const context =
-  getRepositoryContext(repoPath);
+  getRepositoryContext(getRepoPath(repoId));
 
 const trimmedContext =
   context.slice(0, 12000);

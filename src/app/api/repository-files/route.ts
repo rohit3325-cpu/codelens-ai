@@ -1,25 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getRepositoryContext } from "@/lib/repository";
-import { chatWithRepository } from "@/lib/ai";
+import { scanDirectory } from "@/lib/scanner";
 import { getRepoPath } from "@/lib/github";
 
 export async function POST(req: NextRequest) {
   try {
-    const { repoId, question } =
-      await req.json();
+    const { repoId } = await req.json();
 
-    const context =
-      getRepositoryContext(getRepoPath(repoId));
-
-    const answer =
-      await chatWithRepository(
-        context,
-        question
-      );
+    const files = scanDirectory(getRepoPath(repoId));
 
     return NextResponse.json({
       success: true,
-      answer,
+      files,
     });
   } catch (error) {
     console.error(error);
@@ -27,6 +18,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: false,
+        message: "Failed to list repository files",
       },
       {
         status: 500,

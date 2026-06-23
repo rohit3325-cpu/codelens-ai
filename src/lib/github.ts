@@ -1,14 +1,14 @@
 import simpleGit from "simple-git";
 import path from "path";
 
+export function getRepoPath(repoId: string) {
+  return path.join(process.cwd(), "repos", repoId);
+}
+
 export async function cloneRepository(repoUrl: string) {
   const repoName = Date.now().toString();
 
-  const repoPath = path.join(
-    process.cwd(),
-    "repos",
-    repoName
-  );
+  const repoPath = getRepoPath(repoName);
 
   const git = simpleGit();
 

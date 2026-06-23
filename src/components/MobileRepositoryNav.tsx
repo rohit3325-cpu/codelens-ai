@@ -1,0 +1,38 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { getRepositoryNavLinks } from "@/lib/repositoryNav";
+
+export default function MobileRepositoryNav({
+  repoId,
+}: {
+  repoId: string;
+}) {
+  const pathname = usePathname();
+  const links = getRepositoryNavLinks(repoId);
+
+  return (
+    <nav className="flex gap-2 overflow-x-auto border-b border-slate-800 bg-slate-950 px-4 py-3 lg:hidden">
+      {links.map((link) => {
+        const isActive = pathname === link.href;
+        const Icon = link.icon;
+
+        return (
+          <Link
+            key={link.name}
+            href={link.href}
+            className={`flex shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition ${
+              isActive
+                ? "bg-indigo-600 text-white"
+                : "text-slate-400 hover:bg-slate-900 hover:text-white"
+            }`}
+          >
+            <Icon className="h-4 w-4" />
+            {link.name}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}

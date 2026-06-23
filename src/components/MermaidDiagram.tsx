@@ -123,7 +123,7 @@ export default function MermaidDiagram({
   return (
     <div
       ref={ref}
-      className="overflow-auto bg-zinc-900 rounded-lg p-4"
+      className="overflow-auto rounded-2xl border border-slate-800 bg-slate-900 p-4"
     />
   );
 }

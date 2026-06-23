@@ -19,38 +19,22 @@ export default function Features() {
 
   return (
     <section className="py-16">
-
-      <h2 className="text-4xl font-bold text-center mb-12">
+      <h2 className="mb-12 text-center text-4xl font-bold">
         Everything You Need
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {features.map((feature) => (
           <div
             key={feature.title}
-            className="
-              bg-zinc-900
-              border
-              border-zinc-800
-              rounded-3xl
-              p-8
-              hover:border-violet-500
-              transition-all
-            "
+            className="rounded-3xl border border-slate-800 bg-slate-900 p-8 transition-all hover:border-indigo-500"
           >
-            <h3 className="text-xl font-semibold">
-              {feature.title}
-            </h3>
+            <h3 className="text-xl font-semibold">{feature.title}</h3>
 
-            <p className="text-zinc-400 mt-4">
-              {feature.description}
-            </p>
+            <p className="mt-4 text-slate-400">{feature.description}</p>
           </div>
         ))}
-
       </div>
-
     </section>
   );
 }

@@ -36,27 +36,67 @@ const client = new OpenAI({
 });
 
 export async function summarizeCode(code: string) {
-
   const trimmedCode = code.slice(0, 8000);
 
-  const completion = await client.chat.completions.create({
-    model: "openrouter/free",
-    messages: [
-      {
-        role: "system",
-        content:
-          "You are a senior software engineer. Explain code in 3-5 simple bullet points.",
-      },
-      {
-        role: "user",
-        content: `Explain this code file:\n\n${trimmedCode}`,
-      },
-    ],
-  });
+  const completion =
+    await client.chat.completions.create({
+      model: "openrouter/free",
+      messages: [
+        {
+          role: "system",
+          content: `
+You are a senior software engineer.
 
-  console.log(JSON.stringify(completion, null, 2));
+Analyze the code file and generate a concise developer-friendly summary.
 
-  return completion.choices[0].message.content || "";
+Return ONLY markdown.
+
+Use this format:
+
+## 🎯 Purpose
+
+- Explain what this file is responsible for.
+- Maximum 2-3 bullet points.
+
+## ⚙️ Main Logic
+
+- Describe the key logic.
+- Maximum 3-5 bullet points.
+
+## 🔑 Important Functions
+
+- List important functions/classes.
+- Explain each in one line.
+
+## 📦 Dependencies
+
+- Mention important libraries used.
+- Skip if none.
+
+Rules:
+
+- Keep it concise.
+- Do not explain every line.
+- Focus on developer understanding.
+- Use bullet points.
+- Use markdown headings.
+`,
+        },
+        {
+          role: "user",
+          content: `
+Analyze this file:
+
+${trimmedCode}
+`,
+        },
+      ],
+    });
+
+  return (
+    completion.choices[0].message.content ||
+    ""
+  );
 }
 
 export async function generateRepositoryOverview(
@@ -67,47 +107,94 @@ export async function generateRepositoryOverview(
       model: "openrouter/free",
       messages: [
         {
-          role: "system",
-          content: `
+  role: "system",
+  content: `
 You are a senior software architect.
 
-Analyze the repository and generate a concise repository overview.
+Analyze the repository and create a premium developer-friendly overview.
 
-Return the following sections:
+DO NOT generate:
 
-# Project Type
+- Folder structure dumps
+- Long paragraphs
+- Generic repository reports
 
-# Purpose
+Generate ONLY these sections:
 
-# Core Workflow
+# 📦 Project Type
 
-# Tech Stack
+Identify:
+- Library
+- SaaS
+- CLI
+- API
+- Full Stack App
+- Frontend App
+- Backend Service
 
-# Main Features
+# 🎯 Purpose
 
-# Important Files
+Explain in 2-3 bullet points.
 
-# Key Insights
+# ⚡ Tech Stack
 
-# Developer Onboarding
+List technologies used.
 
-# Repository Health
+# 🏗 Core Workflow
 
-Rules:
+Explain how the system works.
 
-- Use markdown.
-- Use bullet points.
-- Keep explanations concise.
-- Do not dump folder structures.
-- Focus on helping a developer understand the repository quickly.
-`,
-        },
+Use arrows:
+
+User
+↓
+API
+↓
+Database
+
+# ✨ Key Insights
+
+Mention:
+- Strong typing
+- Test coverage
+- Authentication
+- CI/CD
+- Performance
+- Architecture patterns
+
+# 🚀 Getting Started
+
+Maximum 5 steps.
+
+# 📊 Repository Health
+
+Rate:
+
+- Documentation
+- Testing
+- Maintainability
+- Type Safety
+
+Use:
+Excellent
+Good
+Average
+Poor
+
+Keep the response concise.
+
+Use markdown.
+Use bullet points.
+Use emojis.
+`
+},
         {
           role: "user",
           content: context,
         },
       ],
     });
+    
 
   return (
     completion.choices[0].message.content ||

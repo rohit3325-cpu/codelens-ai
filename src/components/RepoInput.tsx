@@ -1,76 +1,109 @@
-interface RepoInputProps {
-  repoUrl: string;
-  setRepoUrl: (
-    value: string
-  ) => void;
+"use client";
 
-  analyzeRepo: () => void;
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useClerk, useUser } from "@clerk/nextjs";
+
+function SignInPrompt() {
+  const { openSignIn, openSignUp } = useClerk();
+
+  return (
+    <p className="mt-4 text-sm text-slate-400">
+      You need to sign in to analyze a repository and view results.{" "}
+      <button
+        type="button"
+        onClick={() => openSignIn()}
+        className="font-medium text-indigo-400 hover:text-indigo-300"
+      >
+        Sign in
+      </button>{" "}
+      or{" "}
+      <button
+        type="button"
+        onClick={() => openSignUp()}
+        className="font-medium text-indigo-400 hover:text-indigo-300"
+      >
+        sign up
+      </button>
+      .
+    </p>
+  );
 }
 
-export default function RepoInput({
-  repoUrl,
-  setRepoUrl,
-  analyzeRepo,
-}: RepoInputProps) {
-  return (
-    <div className="max-w-4xl mx-auto">
+export default function RepoInput() {
+  const router = useRouter();
+  const { isLoaded, isSignedIn } = useUser();
+  const { openSignIn } = useClerk();
 
-      <div
-        className="
-        bg-zinc-900
-        border
-        border-zinc-800
-        rounded-3xl
-        p-6
-      "
-      >
-        <div
-          className="
-          flex
-          flex-col
-          sm:flex-row
-          gap-4
-        "
-        >
+  const [repoUrl, setRepoUrl] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const analyzeRepo = async () => {
+    if (!repoUrl.trim()) return;
+
+    if (!isSignedIn) {
+      openSignIn();
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ repoUrl }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        setError(data.message || "Failed to analyze repository.");
+        setIsLoading(false);
+        return;
+      }
+
+      router.push(`/repository/${data.repoName}/overview`);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to analyze repository.");
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="mx-auto max-w-4xl">
+      <div className="rounded-3xl border border-slate-800 bg-slate-900 p-6">
+        <div className="flex flex-col gap-4 sm:flex-row">
           <input
             value={repoUrl}
-            onChange={(e) =>
-              setRepoUrl(
-                e.target.value
-              )
-            }
+            onChange={(e) => setRepoUrl(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && analyzeRepo()}
             placeholder="Paste GitHub Repository URL..."
-            className="
-              flex-1
-              bg-zinc-800
-              border
-              border-zinc-700
-              rounded-xl
-              p-4
-              text-white
-              outline-none
-            "
+            disabled={isLoading}
+            className="flex-1 rounded-xl border border-slate-700 bg-slate-800 p-4 text-white outline-none focus:border-indigo-500 disabled:opacity-50"
           />
 
           <button
+            type="button"
             onClick={analyzeRepo}
-            className="
-              bg-violet-600
-              hover:bg-violet-700
-              transition
-              px-6
-              py-4
-              rounded-xl
-              font-semibold
-              whitespace-nowrap
-            "
+            disabled={isLoading}
+            className="whitespace-nowrap rounded-xl bg-indigo-600 px-6 py-4 font-semibold transition hover:bg-indigo-700 disabled:opacity-50"
           >
-            Analyze
+            {isLoading
+              ? "Analyzing..."
+              : isLoaded && !isSignedIn
+                ? "Sign In to Analyze"
+                : "Analyze"}
           </button>
         </div>
 
-      </div>
+        {isLoaded && !isSignedIn && <SignInPrompt />}
 
+        {error && <p className="mt-4 text-sm text-amber-400">{error}</p>}
+      </div>
     </div>
   );
 }

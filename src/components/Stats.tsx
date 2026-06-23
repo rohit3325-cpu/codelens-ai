@@ -20,34 +20,18 @@ export default function Stats() {
 
   return (
     <section className="py-16">
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((item) => (
           <div
             key={item.label}
-            className="
-              bg-zinc-900
-              border
-              border-zinc-800
-              rounded-3xl
-              p-6
-              hover:border-violet-500
-              transition-all
-            "
+            className="rounded-3xl border border-slate-800 bg-slate-900 p-6 transition-all hover:border-indigo-500"
           >
-            <h3 className="text-4xl font-bold">
-              {item.value}
-            </h3>
+            <h3 className="text-4xl font-bold">{item.value}</h3>
 
-            <p className="text-zinc-400 mt-2">
-              {item.label}
-            </p>
+            <p className="mt-2 text-slate-400">{item.label}</p>
           </div>
         ))}
-
       </div>
-
     </section>
   );
 }

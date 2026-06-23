@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { getRepoPath } from "@/lib/github";
 
 export async function POST(req: NextRequest) {
   try {
-    const { repoPath, filePath } = await req.json();
+    const { repoId, filePath } = await req.json();
 
-    const fullPath = path.join(repoPath, filePath);
+    const fullPath = path.join(getRepoPath(repoId), filePath);
 
     if (!fs.existsSync(fullPath)) {
       return NextResponse.json(
