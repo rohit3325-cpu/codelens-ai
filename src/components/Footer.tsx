@@ -28,13 +28,16 @@ export default function Footer() {
         <div className="lg:col-span-2">
           <div className="flex items-center gap-2">
             <Image
-              src="/logo1.png"
+              src="/logo4.png"
               alt="CodeLens AI"
-              width={32}
-              height={32}
-              className="h-8 w-8"
+              width={120}
+              height={68}
+              className="h-20 w-20"
             />
-            <span className="text-lg font-bold">CodeLens AI</span>
+            
+            <span className="text-xl font-bold ">
+              CodeLens  <span className=" text-red-500">AI</span> 
+            </span>
           </div>
 
           <p className="mt-4 max-w-xs text-sm text-neutral-400">

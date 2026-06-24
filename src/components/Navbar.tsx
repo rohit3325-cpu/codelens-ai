@@ -12,14 +12,15 @@ export default async function Navbar() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
  <Image
-  src="/logo2.png"
+  src="/logo4.png"
   alt="CodeLens AI"
   width={120}
-  height={48}
-  className="h-10 w-10"
+  height={68}
+  className="h-20 w-20"
 />
+
 <span className="text-xl font-bold ">
-  CodeLens AI
+  CodeLens  <span className=" text-red-500">AI</span> 
 </span>
 </div>
 

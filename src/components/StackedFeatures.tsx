@@ -68,7 +68,9 @@ export default function StackedFeatures() {
 
     const mm = gsap.matchMedia();
 
-    mm.add("(min-width: 768px)", () => {
+    // Shared setup for both breakpoints — only the numeric distances differ
+    // (mobile gets a shorter scroll runway so it doesn't feel sluggish).
+    const setupStack = (cardGapPx: number, scrollPerCard: number) => {
       const lastIndex = cards.length - 1;
 
       cards.forEach((card, i) => {
@@ -80,7 +82,7 @@ export default function StackedFeatures() {
         // its position/tilt resets to neutral, since unlike the others
         // it never gets animated away and needs to sit flat once revealed.
         gsap.set(card, {
-          y: isLast ? 0 : i * 14,
+          y: isLast ? 0 : i * cardGapPx,
           scale: 1 - i * 0.025,
           rotate: isLast ? 0 : i % 2 === 0 ? -2 : 2,
           zIndex: cards.length - i,
@@ -93,7 +95,7 @@ export default function StackedFeatures() {
         scrollTrigger: {
           trigger: section,
           start: "top top",
-          end: `+=${cards.length * 480}`,
+          end: `+=${cards.length * scrollPerCard}`,
           scrub: true,
           pin: true,
           anticipatePin: 1,
@@ -123,7 +125,13 @@ export default function StackedFeatures() {
         tl.scrollTrigger?.kill();
         tl.kill();
       };
-    });
+    };
+
+    // Desktop / tablet — unchanged from before.
+    mm.add("(min-width: 768px)", () => setupStack(14, 480));
+
+    // Mobile — same mechanic, tuned distances for smaller screens.
+    mm.add("(max-width: 767px)", () => setupStack(10, 380));
 
     return () => mm.revert();
   }, []);
@@ -132,13 +140,13 @@ export default function StackedFeatures() {
     <section ref={sectionRef} className="relative">
       <div className="bg-feature-grid pointer-events-none absolute inset-0 -z-10" />
 
-      {/* Desktop: pinned scroll-peel stack */}
-      <div className="hidden h-screen flex-col items-center justify-center px-4 md:flex">
-        <h2 className="mb-14 text-center text-4xl font-bold sm:text-5xl">
+      {/* Pinned scroll-peel stack — same mechanic on mobile and desktop */}
+      <div className="flex h-screen flex-col items-center justify-center px-4">
+        <h2 className="mb-10 text-center text-4xl font-bold md:mb-14 sm:text-5xl">
           Everything You Need
         </h2>
 
-        <div className="relative h-[460px] w-full max-w-xl">
+        <div className="relative h-[380px] w-full max-w-xl md:h-[460px]">
           {FEATURE_CARDS.map((feature, i) => {
             const Icon = feature.icon;
 
@@ -148,64 +156,28 @@ export default function StackedFeatures() {
                 ref={(el) => {
                   cardsRef.current[i] = el;
                 }}
-                className="absolute inset-0 flex flex-col justify-center overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900 p-10 shadow-2xl shadow-black/40"
+                className="absolute inset-0 flex flex-col justify-center overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900 p-6 shadow-2xl shadow-black/40 md:p-10"
               >
                 <Image
                   src="/backg.png"
                   alt=""
                   fill
-                  className="object-cover "
+                  className="object-cover"
                 />
                 <div className="absolute inset-0 bg-neutral-950/55" />
 
                 <div className="relative z-10">
-                  <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-red-600/10 text-red-400">
-                    <Icon className="h-6 w-6" />
+                  <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-red-600/10 text-red-400 md:mb-6 md:h-12 md:w-12">
+                    <Icon className="h-5 w-5 md:h-6 md:w-6" />
                   </div>
 
-                  <h3 className="text-2xl font-semibold">{feature.title}</h3>
+                  <h3 className="text-xl font-semibold md:text-2xl">
+                    {feature.title}
+                  </h3>
 
-                  <p className="mt-4 text-lg text-neutral-400">
+                  <p className="mt-3 text-base text-neutral-400 md:mt-4 md:text-lg">
                     {feature.description}
                   </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Mobile: static grid, no scroll-jacking */}
-      <div className="py-16 md:hidden">
-        <h2 className="mb-10 text-center text-4xl font-bold">
-          Everything You Need
-        </h2>
-
-        <div className="grid grid-cols-1 gap-6">
-          {FEATURE_CARDS.map((feature) => {
-            const Icon = feature.icon;
-
-            return (
-              <div
-                key={feature.title}
-                className="relative overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900 p-8"
-              >
-                <Image
-                  src="/backg.png"
-                  alt=""
-                  fill
-                  className="object-cover opacity-45"
-                />
-                <div className="absolute inset-0 bg-neutral-950/55" />
-
-                <div className="relative z-10">
-                  <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-red-600/10 text-red-400">
-                    <Icon className="h-5 w-5" />
-                  </div>
-
-                  <h3 className="text-xl font-semibold">{feature.title}</h3>
-
-                  <p className="mt-3 text-neutral-400">{feature.description}</p>
                 </div>
               </div>
             );
