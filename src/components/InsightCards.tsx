@@ -13,7 +13,7 @@ export default function InsightCards({
 }) {
   const cards = [
     { label: "Total Files", value: insights.totalFiles, accent: "text-white" },
-    { label: "TypeScript", value: insights.typescriptFiles, accent: "text-indigo-400" },
+    { label: "TypeScript", value: insights.typescriptFiles, accent: "text-red-400" },
     { label: "JavaScript", value: insights.javascriptFiles, accent: "text-amber-400" },
     { label: "Tests", value: insights.testFiles, accent: "text-emerald-400" },
     { label: "Config", value: insights.configFiles, accent: "text-cyan-400" },
@@ -24,9 +24,9 @@ export default function InsightCards({
       {cards.map((card) => (
         <div
           key={card.label}
-          className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 transition hover:border-indigo-500/50"
+          className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5 transition hover:border-red-500/50"
         >
-          <p className="text-sm text-slate-400">{card.label}</p>
+          <p className="text-sm text-neutral-400">{card.label}</p>
           <p className={`mt-2 text-3xl font-bold ${card.accent}`}>
             {card.value}
           </p>

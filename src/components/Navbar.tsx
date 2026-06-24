@@ -7,7 +7,7 @@ export default async function Navbar() {
   const { userId } = await auth();
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl">
+    <nav className="sticky top-0 z-50 border-b border-neutral-800 bg-neutral-950/80 backdrop-blur-xl">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
@@ -23,7 +23,7 @@ export default async function Navbar() {
 </span>
 </div>
 
-          <div className="hidden items-center gap-8 text-slate-400 md:flex">
+          <div className="hidden items-center gap-8 text-neutral-400 md:flex">
             <button className="transition hover:text-white">
               Features
             </button>
@@ -40,7 +40,7 @@ export default async function Navbar() {
             <UserButton />
           ) : (
             <SignInButton mode="modal">
-              <button className="rounded-xl bg-indigo-600 px-4 py-2 font-medium transition hover:bg-indigo-700">
+              <button className="rounded-xl bg-red-600 px-4 py-2 font-medium transition hover:bg-red-700">
                 Sign In
               </button>
             </SignInButton>

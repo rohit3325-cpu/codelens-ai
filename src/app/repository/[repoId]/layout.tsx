@@ -13,7 +13,7 @@ export default async function RepositoryLayout({
   const { repoId } = await params;
 
   return (
-    <div className="flex min-h-screen bg-slate-950 text-white">
+    <div className="flex min-h-screen bg-neutral-950 text-white">
       <RepositorySidebar repoId={repoId} />
 
       <div className="flex min-h-screen flex-1 flex-col">

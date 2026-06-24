@@ -11,6 +11,8 @@
   "dependencies": {
     "@clerk/nextjs": "^7.5.5",
     "@google/generative-ai": "^0.24.1",
+    "framer-motion": "^12.41.0",
+    "gsap": "^3.15.0",
     "mermaid": "^11.15.0",
     "mongoose": "^9.7.2",
     "next": "16.2.9",

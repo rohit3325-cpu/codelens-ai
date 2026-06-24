@@ -40,14 +40,14 @@ export default function ChatPage() {
   return (
     <div className="flex h-full max-w-4xl flex-col">
       <h1 className="text-3xl font-bold">Chat</h1>
-      <p className="mt-2 text-slate-400">
+      <p className="mt-2 text-neutral-400">
         Ask questions about this repository and get answers grounded in its
         code.
       </p>
 
       <div className="mt-8 flex-1 space-y-4">
         {messages.length === 0 && (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-neutral-500">
             No messages yet — ask something about this repository to get
             started.
           </p>
@@ -58,8 +58,8 @@ export default function ChatPage() {
             key={index}
             className={`max-w-[80%] rounded-2xl p-4 text-sm ${
               msg.role === "user"
-                ? "ml-auto bg-indigo-600 text-white"
-                : "bg-slate-800 text-slate-200"
+                ? "ml-auto bg-red-600 text-white"
+                : "bg-neutral-800 text-neutral-200"
             }`}
           >
             {msg.content}
@@ -73,13 +73,13 @@ export default function ChatPage() {
           onChange={(e) => setQuestion(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && askRepository()}
           placeholder="Ask about this repository..."
-          className="flex-1 rounded-xl border border-slate-700 bg-slate-900 p-3 text-white outline-none focus:border-indigo-500"
+          className="flex-1 rounded-xl border border-neutral-700 bg-neutral-900 p-3 text-white outline-none focus:border-red-500"
         />
 
         <button
           onClick={askRepository}
           disabled={isAsking}
-          className="rounded-xl bg-indigo-600 px-5 py-3 font-semibold transition hover:bg-indigo-700 disabled:opacity-50"
+          className="rounded-xl bg-red-600 px-5 py-3 font-semibold transition hover:bg-red-700 disabled:opacity-50"
         >
           {isAsking ? "Asking..." : "Ask"}
         </button>

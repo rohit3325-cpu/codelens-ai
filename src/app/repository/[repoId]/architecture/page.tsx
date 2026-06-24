@@ -34,15 +34,15 @@ export default function ArchitecturePage() {
   return (
     <div>
       <h1 className="text-3xl font-bold">Architecture</h1>
-      <p className="mt-2 text-slate-400">
+      <p className="mt-2 text-neutral-400">
         AI-generated, high-level architecture diagram for this repository.
       </p>
 
       <div className="mt-8">
         {isLoading ? (
           <div className="flex items-center gap-3">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
-            <span className="text-slate-400">Generating diagram...</span>
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
+            <span className="text-neutral-400">Generating diagram...</span>
           </div>
         ) : (
           <MermaidDiagram chart={architecture} />

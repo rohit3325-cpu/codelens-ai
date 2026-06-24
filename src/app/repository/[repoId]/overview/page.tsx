@@ -44,20 +44,20 @@ export default function OverviewPage() {
   return (
     <div className="max-w-5xl">
       <h1 className="text-3xl font-bold">Repository Overview</h1>
-      <p className="mt-2 text-slate-400">
+      <p className="mt-2 text-neutral-400">
         A high-level, AI-generated summary of this repository.
       </p>
 
       {isLoading ? (
         <div className="mt-8 flex items-center gap-3">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
-          <span className="text-slate-400">Analyzing repository...</span>
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
+          <span className="text-neutral-400">Analyzing repository...</span>
         </div>
       ) : (
         <div className="mt-8 space-y-8">
           {insights && <InsightCards insights={insights} />}
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+          <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-6">
             <div className="prose prose-invert max-w-none">
               <ReactMarkdown>
                 {overview || "No overview available."}
