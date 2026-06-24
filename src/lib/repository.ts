@@ -1,76 +1,74 @@
-import fs from "fs";
-import path from "path";
+import { getFileContent, getRepoTree, type RepoRef } from "@/lib/github";
+import { withCache } from "@/lib/githubCache";
 
-const ALLOWED_EXTENSIONS = [
-  ".ts",
-  ".tsx",
-  ".js",
-  ".jsx",
-  ".md",
-  ".json",
+const ALLOWED_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx", ".md", ".json"];
+
+const IGNORED_PATH_SEGMENTS = [
+  "node_modules",
+  ".git",
+  ".next",
+  ".github",
+  ".husky",
+  "dist",
+  "build",
 ];
 
-function getAllFiles(dir: string): string[] {
-  let files: string[] = [];
-
-  const entries = fs.readdirSync(dir, {
-    withFileTypes: true,
-  });
-
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-
-    if (
-      entry.isDirectory() &&
-      entry.name !== "node_modules" &&
-      entry.name !== ".git" &&
-      entry.name !== ".next"
-    ) {
-      files = files.concat(getAllFiles(fullPath));
-    }
-
-    if (entry.isFile()) {
-      const ext = path.extname(entry.name);
-
-      if (ALLOWED_EXTENSIONS.includes(ext)) {
-        files.push(fullPath);
-      }
-    }
-  }
-
-  return files;
+function isIgnoredPath(filePath: string): boolean {
+  return filePath.split("/").some((segment) => IGNORED_PATH_SEGMENTS.includes(segment));
 }
 
-export function getRepositoryContext(
-  repoPath: string
-) {
-  const files = getAllFiles(repoPath);
+function extname(filePath: string): string {
+  const name = filePath.split("/").pop() || "";
+  const dot = name.lastIndexOf(".");
 
-  const importantFiles = files
-    .sort((a, b) => {
-      const sizeA = fs.statSync(a).size;
-      const sizeB = fs.statSync(b).size;
+  return dot === -1 ? "" : name.slice(dot);
+}
 
-      return sizeB - sizeA;
-    })
-    .slice(0, 10);
+export async function listRepositoryFiles(ref: RepoRef): Promise<string[]> {
+  const tree = await withCache(
+    `tree:${ref.owner}/${ref.repo}/${ref.branch}`,
+    () => getRepoTree(ref.owner, ref.repo, ref.branch)
+  );
 
-  let context = "";
+  return tree.filter((entry) => !isIgnoredPath(entry.path)).map((entry) => entry.path);
+}
 
-  for (const file of importantFiles) {
-    const content = fs.readFileSync(
-      file,
-      "utf-8"
+export async function getRepositoryContext(ref: RepoRef): Promise<string> {
+  return withCache(`context:${ref.owner}/${ref.repo}/${ref.branch}`, async () => {
+    const tree = await getRepoTree(ref.owner, ref.repo, ref.branch);
+
+    const importantFiles = tree
+      .filter((entry) => !isIgnoredPath(entry.path))
+      .filter((entry) => ALLOWED_EXTENSIONS.includes(extname(entry.path)))
+      .sort((a, b) => (b.size || 0) - (a.size || 0))
+      .slice(0, 10);
+
+    const files = await Promise.all(
+      importantFiles.map(async (entry) => {
+        try {
+          const content = await getFileContent(ref.owner, ref.repo, ref.branch, entry.path);
+          return { path: entry.path, content };
+        } catch (error) {
+          console.error(`Failed to fetch ${entry.path}:`, error);
+          return null;
+        }
+      })
     );
 
-    context += `
-FILE: ${path.relative(repoPath, file)}
+    let context = "";
 
-${content.slice(0, 2000)}
+    for (const file of files) {
+      if (!file) continue;
+
+      context += `
+FILE: ${file.path}
+
+${file.content.slice(0, 2000)}
 
 --------------------------------
 `;
-  }
+    }
 
-  return context;
+    return context;
+  });
 }

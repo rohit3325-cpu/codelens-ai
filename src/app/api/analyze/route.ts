@@ -1,33 +1,34 @@
 import { NextResponse } from "next/server";
-import { cloneRepository } from "@/lib/github";
-import { scanDirectory } from "@/lib/scanner";
+import { encodeRepoId, resolveRepoRef, GitHubApiError } from "@/lib/github";
+import { listRepositoryFiles } from "@/lib/repository";
 
 export async function POST(req: Request) {
   try {
     const { repoUrl } = await req.json();
 
-    const repo = await cloneRepository(repoUrl);
+    if (!repoUrl || typeof repoUrl !== "string") {
+      return NextResponse.json(
+        { success: false, message: "A GitHub repository URL is required." },
+        { status: 400 }
+      );
+    }
 
-    const files = scanDirectory(repo.repoPath);
-     console.log("Repo Path:", repo.repoPath);
+    const ref = await resolveRepoRef(repoUrl);
+    const files = await listRepositoryFiles(ref);
+
     return NextResponse.json({
       success: true,
-      repoName: repo.repoName,
-      repoPath: repo.repoPath,
+      repoName: encodeRepoId(ref),
       totalFiles: files.length,
       files,
     });
   } catch (error) {
     console.error(error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Failed to analyze repository",
-      },
-      {
-        status: 500,
-      }
-    );
+    const status = error instanceof GitHubApiError ? error.status : 500;
+    const message =
+      error instanceof GitHubApiError ? error.message : "Failed to analyze repository";
+
+    return NextResponse.json({ success: false, message }, { status });
   }
 }

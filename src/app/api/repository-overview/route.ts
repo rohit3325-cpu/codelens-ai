@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRepositoryContext } from "@/lib/repository";
 import { generateRepositoryOverview } from "@/lib/ai";
-import { getRepoPath } from "@/lib/github";
+import { decodeRepoId } from "@/lib/github";
 
 export async function POST(req: NextRequest) {
   try {
     const { repoId } = await req.json();
+    const ref = decodeRepoId(repoId);
 
-    const context = getRepositoryContext(getRepoPath(repoId));
+    const context = await getRepositoryContext(ref);
 
-    const overview =
-      await generateRepositoryOverview(context);
+    const overview = await generateRepositoryOverview(context);
 
     return NextResponse.json({
       success: true,

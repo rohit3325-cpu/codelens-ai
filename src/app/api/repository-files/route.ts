@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { scanDirectory } from "@/lib/scanner";
-import { getRepoPath } from "@/lib/github";
+import { decodeRepoId } from "@/lib/github";
+import { listRepositoryFiles } from "@/lib/repository";
 
 export async function POST(req: NextRequest) {
   try {
     const { repoId } = await req.json();
+    const ref = decodeRepoId(repoId);
 
-    const files = scanDirectory(getRepoPath(repoId));
+    const files = await listRepositoryFiles(ref);
 
     return NextResponse.json({
       success: true,

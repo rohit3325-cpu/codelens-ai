@@ -1,72 +1,43 @@
-import fs from "fs";
-import path from "path";
+import { getRepoTree, type RepoRef } from "@/lib/github";
+import { withCache } from "@/lib/githubCache";
+import type { HealthRating, RepositoryHealth } from "@/models/Repository";
 
-export function getRepositoryInsights(
-  repoPath: string
-) {
+export interface RepositoryInsights {
+  totalFiles: number;
+  typescriptFiles: number;
+  javascriptFiles: number;
+  testFiles: number;
+  configFiles: number;
+}
+
+export async function getRepositoryInsights(
+  ref: RepoRef
+): Promise<RepositoryInsights> {
+  const tree = await withCache(
+    `tree:${ref.owner}/${ref.repo}/${ref.branch}`,
+    () => getRepoTree(ref.owner, ref.repo, ref.branch)
+  );
+
   let totalFiles = 0;
-
   let typescriptFiles = 0;
   let javascriptFiles = 0;
   let testFiles = 0;
   let configFiles = 0;
 
-  function scan(dir: string) {
-    const entries = fs.readdirSync(dir, {
-      withFileTypes: true,
-    });
+  for (const entry of tree) {
+    if (entry.path.split("/").includes("node_modules")) continue;
 
-    for (const entry of entries) {
-      const fullPath = path.join(
-        dir,
-        entry.name
-      );
+    totalFiles++;
 
-      if (
-        entry.isDirectory() &&
-        entry.name !== "node_modules" &&
-        entry.name !== ".git"
-      ) {
-        scan(fullPath);
-      }
+    const name = entry.path.split("/").pop() || "";
+    const dot = name.lastIndexOf(".");
+    const ext = dot === -1 ? "" : name.slice(dot);
 
-      if (entry.isFile()) {
-        totalFiles++;
-
-        const ext = path.extname(
-          entry.name
-        );
-
-        if (
-          ext === ".ts" ||
-          ext === ".tsx"
-        ) {
-          typescriptFiles++;
-        }
-
-        if (
-          ext === ".js" ||
-          ext === ".jsx"
-        ) {
-          javascriptFiles++;
-        }
-
-        if (
-          entry.name.includes(".test")
-        ) {
-          testFiles++;
-        }
-
-        if (
-          entry.name.includes("config")
-        ) {
-          configFiles++;
-        }
-      }
-    }
+    if (ext === ".ts" || ext === ".tsx") typescriptFiles++;
+    if (ext === ".js" || ext === ".jsx") javascriptFiles++;
+    if (name.includes(".test")) testFiles++;
+    if (name.includes("config")) configFiles++;
   }
-
-  scan(repoPath);
 
   return {
     totalFiles,
@@ -74,5 +45,35 @@ export function getRepositoryInsights(
     javascriptFiles,
     testFiles,
     configFiles,
+  };
+}
+
+function rate(ratio: number): HealthRating {
+  if (ratio >= 0.6) return "Excellent";
+  if (ratio >= 0.3) return "Good";
+  if (ratio > 0) return "Average";
+  return "Poor";
+}
+
+// Deterministic heuristic derived from the existing file-tree insights —
+// no extra AI call, so it stays fast and free to compute on every analysis.
+export function computeRepositoryHealth(
+  insights: RepositoryInsights
+): RepositoryHealth {
+  const codeFiles = insights.typescriptFiles + insights.javascriptFiles;
+
+  const testRatio = codeFiles > 0 ? insights.testFiles / codeFiles : 0;
+  const typeRatio = codeFiles > 0 ? insights.typescriptFiles / codeFiles : 0;
+  const hasConfig = insights.configFiles > 0;
+
+  const score = Math.round(
+    Math.min(100, typeRatio * 40 + testRatio * 40 + (hasConfig ? 20 : 5))
+  );
+
+  return {
+    score,
+    testCoverage: rate(testRatio),
+    documentation: hasConfig ? "Good" : "Average",
+    typeSafety: rate(typeRatio),
   };
 }

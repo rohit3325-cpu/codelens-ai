@@ -202,6 +202,55 @@ Use emojis.
   );
 }
 
+export async function generateOnboardingGuide(context: string) {
+  const completion = await client.chat.completions.create({
+    model: "openrouter/free",
+    messages: [
+      {
+        role: "system",
+        content: `
+You are a senior engineer writing an onboarding guide for a developer who just joined this codebase.
+
+Generate ONLY these sections:
+
+## 🚀 Getting Started
+
+Steps to set up and run the project locally. Maximum 6 steps.
+
+## 🗺️ Codebase Map
+
+Explain where to find key logic, organized by folder or file.
+
+## 🔧 Common Tasks
+
+Explain how to do 2-3 common tasks in this codebase (e.g. add an endpoint, add a component).
+
+## ⚠️ Gotchas
+
+Mention non-obvious pitfalls a new contributor should know about.
+
+Rules:
+
+- Keep it concise.
+- Use markdown.
+- Use bullet points.
+- Do not invent setup steps that aren't supported by the provided context.
+`,
+      },
+      {
+        role: "user",
+        content: `
+Analyze this repository and generate an onboarding guide for a new contributor.
+
+${context}
+`,
+      },
+    ],
+  });
+
+  return completion.choices[0].message.content || "";
+}
+
 export async function chatWithRepository(
   context: string,
   question: string
@@ -211,13 +260,30 @@ export async function chatWithRepository(
     messages: [
       {
         role: "system",
-        content: `
-You are an expert software engineer.
+        content:  `
+You are a senior software engineer analyzing a GitHub repository.
 
-Answer questions using only the repository context provided.
-If the answer is not found, say:
-"I could not find that information in the repository."
-`,
+Rules:
+- Always answer in markdown.
+- Use bullet points whenever possible.
+- Never return large paragraphs.
+- Keep answers concise and structured.
+- Mention relevant files when possible.
+- If information is unavailable, clearly state it.
+
+Response Format:
+
+## Answer
+
+- Point 1
+- Point 2
+- Point 3
+
+## Relevant Files
+
+- file1.ts
+- file2.ts
+      `,
       },
       {
         role: "user",
@@ -264,6 +330,9 @@ STRICT RULES:
 - No quotes
 - No apostrophes
 - No parentheses
+- No asterisks
+- No backticks
+- No slashes
 - Maximum 8 nodes
 - Use node IDs
 
@@ -315,11 +384,16 @@ ${trimmedContext}
     "=============================="
   );
 
+  // Some models (e.g. reasoning models routed through "openrouter/free")
+  // leak their chain-of-thought into the content, which can mention
+  // "graph TD" mid-ramble before the real diagram. Take the LAST match so
+  // we land on the model's final, committed answer instead of its scratch
+  // thinking.
   const graphTD =
-    response.indexOf("graph TD");
+    response.lastIndexOf("graph TD");
 
   const graphLR =
-    response.indexOf("graph LR");
+    response.lastIndexOf("graph LR");
 
   const indexes = [
     graphTD,
@@ -327,10 +401,14 @@ ${trimmedContext}
   ].filter((i) => i >= 0);
 
   if (indexes.length > 0) {
-    const start = Math.min(...indexes);
+    const start = Math.max(...indexes);
 
     return response
       .slice(start)
+      // The model sometimes glues the graph-type declaration directly onto
+      // the first node (e.g. "graph TDA[Storage]") with no separator, which
+      // Mermaid can't parse. Force a newline after the declaration.
+      .replace(/^(graph (?:TD|LR))(?!\n)/, "$1\n")
       .trim();
   }
 

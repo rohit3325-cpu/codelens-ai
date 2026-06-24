@@ -1,27 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-import { getRepoPath } from "@/lib/github";
+import { decodeRepoId, getFileContent, GitHubApiError } from "@/lib/github";
 
 export async function POST(req: NextRequest) {
   try {
     const { repoId, filePath } = await req.json();
+    const ref = decodeRepoId(repoId);
 
-    const fullPath = path.join(getRepoPath(repoId), filePath);
-
-    if (!fs.existsSync(fullPath)) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "File not found",
-        },
-        {
-          status: 404,
-        }
-      );
-    }
-
-    const content = fs.readFileSync(fullPath, "utf-8");
+    const content = await getFileContent(ref.owner, ref.repo, ref.branch, filePath);
 
     return NextResponse.json({
       success: true,
@@ -31,14 +16,10 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error(error);
 
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Failed to read file",
-      },
-      {
-        status: 500,
-      }
-    );
+    const status = error instanceof GitHubApiError ? error.status : 500;
+    const message =
+      error instanceof GitHubApiError && status === 404 ? "File not found" : "Failed to read file";
+
+    return NextResponse.json({ success: false, message }, { status });
   }
 }

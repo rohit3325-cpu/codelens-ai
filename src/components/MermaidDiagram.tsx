@@ -25,19 +25,24 @@ export default function MermaidDiagram({
           .replace(/```/g, "")
           .replace(/'/g, "")
           .replace(/"/g, "")
+          .replace(/`/g, "")
+          .replace(/\*/g, "")
+          .replace(/#/g, "")
           .replace(/\(/g, "-")
           .replace(/\)/g, "-")
           .trim();
 
-        // Extract only Mermaid content
+        // Extract only Mermaid content. Use the LAST match in case the
+        // model's raw text mentions "graph TD" while reasoning before
+        // settling on its final diagram.
         const graphTD =
-          cleanedChart.indexOf("graph TD");
+          cleanedChart.lastIndexOf("graph TD");
         const graphLR =
-          cleanedChart.indexOf("graph LR");
+          cleanedChart.lastIndexOf("graph LR");
         const flowTD =
-          cleanedChart.indexOf("flowchart TD");
+          cleanedChart.lastIndexOf("flowchart TD");
         const flowLR =
-          cleanedChart.indexOf("flowchart LR");
+          cleanedChart.lastIndexOf("flowchart LR");
 
         const indexes = [
           graphTD,
@@ -47,10 +52,17 @@ export default function MermaidDiagram({
         ].filter((i) => i >= 0);
 
         if (indexes.length > 0) {
-          const start = Math.min(...indexes);
+          const start = Math.max(...indexes);
           cleanedChart =
             cleanedChart.slice(start);
         }
+
+        // Guard against the declaration being glued directly onto the
+        // first node with no separator, e.g. "graph TDA[Storage]".
+        cleanedChart = cleanedChart.replace(
+          /^(graph (?:TD|LR)|flowchart (?:TD|LR))(?!\n)/,
+          "$1\n"
+        );
 
         const validDiagram =
           cleanedChart.startsWith(

@@ -1,20 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getRepositoryInsights } from "@/lib/insights";
-import { getRepoPath } from "@/lib/github";
+import { decodeRepoId } from "@/lib/github";
 
-export async function POST(
-  req: NextRequest
-) {
+export async function POST(req: NextRequest) {
   try {
-    const { repoId } =
-      await req.json();
+    const { repoId } = await req.json();
+    const ref = decodeRepoId(repoId);
 
-    const insights =
-      getRepositoryInsights(getRepoPath(repoId));
+    const insights = await getRepositoryInsights(ref);
 
-    return NextResponse.json(
-      insights
-    );
+    return NextResponse.json(insights);
   } catch (error) {
     console.error(error);
 
