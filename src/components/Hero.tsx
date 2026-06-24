@@ -14,7 +14,7 @@ export default function Hero() {
         sizes="100vw"
         className="object-cover opacity-40"
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/30 via-neutral-950/40 to-neutral-950" />
+      <div  id="analyze-section" className="absolute inset-0 bg-gradient-to-b from-neutral-950/30 via-neutral-950/40 to-neutral-950" />
 
       {/* <div className="pointer-events-none absolute top-[-200px] left-1/2 h-[700px] w-[700px] -translate-x-1/2 rounded-full bg-red-600/20 blur-[180px]" /> */}
 

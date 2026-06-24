@@ -13,3 +13,21 @@ body {
   -webkit-mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
   mask-image: linear-gradient(to bottom, transparent, black 15%, black 85%, transparent);
 }
+
+@keyframes river {
+  0% {
+    transform: translateX(-50%);
+  }
+
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.animate-river {
+  animation: river 15s linear infinite;
+}
+
+html {
+  scroll-behavior: smooth;
+}
