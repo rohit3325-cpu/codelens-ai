@@ -101,7 +101,7 @@ export default function Footer() {
             <div className="flex items-center gap-3">
 
               <Image
-                src="/logo4.png"
+                src="/logo6.png"
                 alt="CodeLens AI"
                 width={80}
                 height={80}

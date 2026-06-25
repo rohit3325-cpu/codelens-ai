@@ -1,9 +1,54 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { useClerk, useUser } from "@clerk/nextjs";
 
 export default function Hero() {
+  const router = useRouter();
+  const { isSignedIn } = useUser();
+  const { openSignIn } = useClerk();
+
+  const [quickUrl, setQuickUrl] = useState("");
+  const [isTrying, setIsTrying] = useState(false);
+  const [tryError, setTryError] = useState("");
+
+  const handleQuickTry = async () => {
+    if (!quickUrl.trim()) return;
+
+    if (!isSignedIn) {
+      openSignIn();
+      return;
+    }
+
+    setIsTrying(true);
+    setTryError("");
+
+    try {
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ repoUrl: quickUrl }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        setTryError(data.message || "Failed to analyze repository.");
+        setIsTrying(false);
+        return;
+      }
+
+      router.push(`/repository/${data.repoName}/overview`);
+    } catch (err) {
+      console.error(err);
+      setTryError("Failed to analyze repository.");
+      setIsTrying(false);
+    }
+  };
+
   return (
     <section className="relative overflow-hidden pt-20 pb-16 sm:pt-28 sm:pb-24">
       <Image
@@ -49,6 +94,41 @@ export default function Hero() {
           AI-powered repository analysis, architecture diagrams, code
           summaries, onboarding guides and repository-aware chat.
         </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mx-auto mt-10 max-w-xl"
+        >
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <input
+              value={quickUrl}
+              onChange={(e) => setQuickUrl(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleQuickTry()}
+              placeholder="https://github.com/vercel/next.js"
+              disabled={isTrying}
+              className="flex-1 rounded-xl border border-neutral-700 bg-neutral-900 p-3 text-sm text-white outline-none focus:border-red-500 disabled:opacity-50"
+            />
+
+            <button
+              type="button"
+              onClick={handleQuickTry}
+              disabled={isTrying}
+              className="whitespace-nowrap rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold transition hover:bg-red-700 disabled:opacity-50"
+            >
+              {isTrying ? "Analyzing..." : "Try It Free"}
+            </button>
+          </div>
+
+          {tryError && (
+            <p className="mt-3 text-sm text-amber-400">{tryError}</p>
+          )}
+
+          <p className="mt-3 text-xs text-neutral-500">
+            No sign up required for public repos
+          </p>
+        </motion.div>
       </div>
     </section>
   );
