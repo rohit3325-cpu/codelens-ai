@@ -20,9 +20,9 @@ export default function Home() {
         <Hero />
 
         {/* <RepoInput /> */}
-        <SocialProof />
         <HowItWorks />
         <Stats />
+        <SocialProof />
       </main>
 
       <StackedFeatures />

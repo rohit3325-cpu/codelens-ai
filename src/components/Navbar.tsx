@@ -1,6 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
 import { SignInButton, UserButton } from "@clerk/nextjs";
-import { IconGithub } from "@/components/icons";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -26,16 +25,17 @@ export default async function Navbar() {
 </div>
 
           <div className="hidden items-center gap-8 text-neutral-400 md:flex">
-            <button className="transition hover:text-white">
+            <Link href="/#features" className="transition hover:text-white">
               Features
-            </button>
+            </Link>
 
-            <button className="transition hover:text-white">Docs</button>
+            <Link href="/docs" className="transition hover:text-white">
+              Docs
+            </Link>
 
-            <button className="flex items-center gap-2 transition hover:text-white">
-              <IconGithub className="h-4 w-4" />
-              GitHub
-            </button>
+            <Link href="/#pricing" className="transition hover:text-white">
+              Pricing
+            </Link>
           </div>
 
           {userId ? (

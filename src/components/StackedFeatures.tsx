@@ -137,7 +137,7 @@ export default function StackedFeatures() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative">
+    <section id="features" ref={sectionRef} className="relative">
       <div className="bg-feature-grid pointer-events-none absolute inset-0 -z-10" />
 
       {/* Pinned scroll-peel stack — same mechanic on mobile and desktop */}
