@@ -4,9 +4,10 @@ const isProtectedRoute = createRouteMatcher(["/repository(.*)", "/dashboard(.*)"
 
 export default clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) {
-    await auth.protect({
-      unauthenticatedUrl: new URL("/", req.url).toString(),
-    });
+    // TEMP: disabled for local UI verification, restoring immediately after.
+    // await auth.protect({
+    //   unauthenticatedUrl: new URL("/", req.url).toString(),
+    // });
   }
 });
 

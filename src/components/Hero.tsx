@@ -117,7 +117,7 @@ export default function Hero() {
               disabled={isTrying}
               className="whitespace-nowrap rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold transition hover:bg-red-700 disabled:opacity-50"
             >
-              {isTrying ? "Analyzing..." : "Try It Free"}
+              {isTrying ? "Analyzing..." : "Try It"}
             </button>
           </div>
 
@@ -125,9 +125,7 @@ export default function Hero() {
             <p className="mt-3 text-sm text-amber-400">{tryError}</p>
           )}
 
-          <p className="mt-3 text-xs text-neutral-500">
-            No sign up required for public repos
-          </p>
+          
         </motion.div>
       </div>
     </section>
