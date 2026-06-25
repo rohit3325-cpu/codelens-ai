@@ -5,7 +5,7 @@ import { Repository } from "@/models/Repository";
 import { getOrCreateRepositoryAnalysis } from "@/lib/repositoryStore";
 import { GitHubApiError } from "@/lib/github";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const { userId } = await auth();
 
   if (!userId) {
@@ -17,11 +17,21 @@ export async function GET() {
 
   await connectToDatabase();
 
-  const repositories = await Repository.find({ userId })
+  const search = req.nextUrl.searchParams.get("q")?.trim();
+
+  const query = search
+    ? { userId, repoName: { $regex: escapeRegExp(search), $options: "i" } }
+    : { userId };
+
+  const repositories = await Repository.find(query)
     .sort({ analyzedAt: -1 })
     .lean();
 
   return NextResponse.json({ success: true, repositories });
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 export async function POST(req: NextRequest) {

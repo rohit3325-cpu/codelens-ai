@@ -2,20 +2,18 @@ import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { IconArrowLeft } from "@/components/icons";
 
-export default function RepositoryTopbar({
-  repoId,
-}: {
-  repoId: string;
-}) {
+export default function RepositoryTopbar({ repoId }: { repoId?: string }) {
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center justify-between gap-3 border-b border-neutral-800 bg-neutral-950/80 px-4 backdrop-blur-xl sm:px-8">
       <div className="flex min-w-0 items-center gap-3">
         <span className="hidden text-xs uppercase tracking-wider text-neutral-500 sm:inline">
-          Repository
+          {repoId ? "Repository" : "Dashboard"}
         </span>
-        <span className="truncate font-mono text-sm text-neutral-300">
-          {repoId}
-        </span>
+        {repoId && (
+          <span className="truncate font-mono text-sm text-neutral-300">
+            {repoId}
+          </span>
+        )}
       </div>
 
       <div className="flex shrink-0 items-center gap-3 sm:gap-6">

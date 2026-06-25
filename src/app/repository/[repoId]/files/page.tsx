@@ -60,7 +60,7 @@ export default function FilesPage() {
       const summaryRes = await fetch("/api/summarize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: content }),
+        body: JSON.stringify({ code: content, repoId, filePath }),
       });
 
       const summaryData = await summaryRes.json();

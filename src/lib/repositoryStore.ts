@@ -13,6 +13,9 @@ import {
   generateOnboardingGuide,
   generateRepositoryOverview,
 } from "@/lib/ai";
+import { resolveAIClientConfig } from "@/lib/aiProviderStore";
+import { SummaryHistory } from "@/models/SummaryHistory";
+import { OnboardingGuide } from "@/models/OnboardingGuide";
 
 const DUPLICATE_KEY_ERROR_CODE = 11000;
 
@@ -38,16 +41,17 @@ export async function getOrCreateRepositoryAnalysis(
   const ref = await resolveRepoRef(repoUrl);
   const repoId = encodeRepoId(ref);
 
-  const [context, files, insights] = await Promise.all([
+  const [context, files, insights, config] = await Promise.all([
     getRepositoryContext(ref),
     listRepositoryFiles(ref),
     getRepositoryInsights(ref),
+    resolveAIClientConfig(userId),
   ]);
 
   const [overview, architectureDiagram, onboardingGuide] = await Promise.all([
-    generateRepositoryOverview(context),
-    generateArchitectureDiagram(context),
-    generateOnboardingGuide(context),
+    generateRepositoryOverview(context, config),
+    generateArchitectureDiagram(context, config),
+    generateOnboardingGuide(context, config),
   ]);
 
   const repositoryHealth = computeRepositoryHealth(insights);
@@ -111,4 +115,30 @@ export async function appendChatMessage(
   await connectToDatabase();
 
   return Chat.create({ repositoryId, userId, role, content });
+}
+
+/**
+ * Deletes a saved repository along with every record that references it —
+ * chat history, file-summary history and onboarding-guide history — so
+ * removing a repository never leaves orphaned documents behind.
+ */
+export async function deleteRepositoryCascade(
+  userId: string,
+  repositoryId: string
+): Promise<boolean> {
+  await connectToDatabase();
+
+  const repository = await Repository.findOneAndDelete({ _id: repositoryId, userId });
+
+  if (!repository) {
+    return false;
+  }
+
+  await Promise.all([
+    Chat.deleteMany({ repositoryId, userId }),
+    SummaryHistory.deleteMany({ repoId: repositoryId, userId }),
+    OnboardingGuide.deleteMany({ repoId: repositoryId, userId }),
+  ]);
+
+  return true;
 }

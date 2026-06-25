@@ -3,14 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getRepositoryNavLinks } from "@/lib/repositoryNav";
+import { getDashboardNavLinks } from "@/lib/dashboardNav";
 
-export default function MobileRepositoryNav({
-  repoId,
-}: {
-  repoId: string;
-}) {
+export default function MobileRepositoryNav({ repoId }: { repoId?: string }) {
   const pathname = usePathname();
-  const links = getRepositoryNavLinks(repoId);
+  const links = repoId
+    ? [...getRepositoryNavLinks(repoId), ...getDashboardNavLinks()]
+    : getDashboardNavLinks();
 
   return (
     <nav className="flex gap-2 overflow-x-auto border-b border-neutral-800 bg-neutral-950 px-4 py-3 lg:hidden">

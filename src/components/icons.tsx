@@ -55,6 +55,64 @@ export function IconWorkspace({ className }: { className?: string }) {
   );
 }
 
+export function IconLink({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>
+      <path d="M9 15l6-6" strokeLinecap="round" />
+      <path d="M10.5 6.5l1.4-1.4a3.5 3.5 0 0 1 5 5L15.5 11.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M13.5 17.5l-1.4 1.4a3.5 3.5 0 0 1-5-5L8.5 12.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function IconCpu({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>
+      <rect x="6" y="6" width="12" height="12" rx="2" />
+      <rect x="9.5" y="9.5" width="5" height="5" rx="1" />
+      <path d="M9 3v2M15 3v2M9 19v2M15 19v2M3 9h2M3 15h2M19 9h2M19 15h2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function IconClock({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.5V12l3 2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function IconSettings({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>
+      <circle cx="12" cy="12" r="3.25" />
+      <path
+        d="M12 3.5v2.4M12 18.1v2.4M5.1 7.2l2.1 1.2M16.8 15.6l2.1 1.2M3.5 12h2.4M18.1 12h2.4M5.1 16.8l2.1-1.2M16.8 8.4l2.1-1.2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+export function IconBook({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>
+      <path d="M4 5.5c2-1 5-1 7 .5v12c-2-1.5-5-1.5-7-.5v-12Z" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M18 5.5c-2-1-5-1-7 .5v12c2-1.5 5-1.5 7-.5v-12Z" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function IconTrash({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className={className}>
+      <path d="M5 7h14M9.5 7V5a1.5 1.5 0 0 1 1.5-1.5h2A1.5 1.5 0 0 1 14.5 5v2M7 7l1 12.5A1.5 1.5 0 0 0 9.5 21h5a1.5 1.5 0 0 0 1.5-1.5L17 7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function IconArrowLeft({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className={className}>

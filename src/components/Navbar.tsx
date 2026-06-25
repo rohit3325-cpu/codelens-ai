@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { SignInButton, UserButton } from "@clerk/nextjs";
 import { IconGithub } from "@/components/icons";
 import Image from "next/image";
+import Link from "next/link";
 
 export default async function Navbar() {
   const { userId } = await auth();
@@ -12,11 +13,11 @@ export default async function Navbar() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
  <Image
-  src="/logo4.png"
+  src="/logo6.png"
   alt="CodeLens AI"
-  width={120}
+  width={100}
   height={68}
-  className="h-20 w-20"
+  className="h-10 w-10"
 />
 
 <span className="text-xl font-bold ">
@@ -38,7 +39,15 @@ export default async function Navbar() {
           </div>
 
           {userId ? (
-            <UserButton />
+            <div className="flex items-center gap-4">
+              <Link
+                href="/dashboard/repositories"
+                className="hidden text-sm font-medium text-neutral-400 transition hover:text-white sm:inline"
+              >
+                Dashboard
+              </Link>
+              <UserButton />
+            </div>
           ) : (
             <SignInButton mode="modal">
               <button className="rounded-xl bg-red-600 px-4 py-2 font-medium transition hover:bg-red-700">

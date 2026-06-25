@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Repository } from "@/models/Repository";
 import { Chat } from "@/models/Chat";
+import { deleteRepositoryCascade } from "@/lib/repositoryStore";
 
 export async function GET(
   req: NextRequest,
@@ -67,18 +68,14 @@ export async function DELETE(
     );
   }
 
-  await connectToDatabase();
+  const deleted = await deleteRepositoryCascade(userId, id);
 
-  const repository = await Repository.findOneAndDelete({ _id: id, userId });
-
-  if (!repository) {
+  if (!deleted) {
     return NextResponse.json(
       { success: false, message: "Repository not found" },
       { status: 404 }
     );
   }
-
-  await Chat.deleteMany({ repositoryId: id, userId });
 
   return NextResponse.json({ success: true });
 }

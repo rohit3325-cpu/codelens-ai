@@ -4,20 +4,24 @@ import { getRepositoryContext } from "@/lib/repository";
 import { chatWithRepository } from "@/lib/ai";
 import { decodeRepoId } from "@/lib/github";
 import { appendChatMessage, getOrCreateRepositoryAnalysis } from "@/lib/repositoryStore";
+import { resolveAIClientConfig } from "@/lib/aiProviderStore";
 
 export async function POST(req: NextRequest) {
   try {
     const { repoId, question } = await req.json();
     const ref = decodeRepoId(repoId);
 
-    const context = await getRepositoryContext(ref);
+    const { userId } = await auth();
 
-    const answer = await chatWithRepository(context, question);
+    const [context, config] = await Promise.all([
+      getRepositoryContext(ref),
+      resolveAIClientConfig(userId),
+    ]);
+
+    const answer = await chatWithRepository(context, question, config);
 
     // Persisting chat history is a best-effort side effect — a DB hiccup
     // should never block the user from getting their answer.
-    const { userId } = await auth();
-
     if (userId) {
       persistChatTurn(userId, ref, question, answer).catch((error) => {
         console.error("Failed to persist chat history:", error);

@@ -1,50 +1,10 @@
-// import OpenAI from "openai";
+import {
+  generateCompletion,
+  PLATFORM_DEFAULT_CONFIG,
+  type AIClientConfig,
+} from "@/lib/aiProviders";
 
-// const client = new OpenAI({
-//   apiKey: process.env.OPENROUTER_API_KEY,
-//   baseURL: "https://openrouter.ai/api/v1",
-// });
-
-// export async function summarizeCode(code: string) {
-//   const completion = await client.chat.completions.create({
-//     model: "qwen/qwen3-32b:free",
-//     messages: [
-//       {
-//         role: "system",
-//         content:
-//           "You are a senior software engineer. Explain code files in simple bullet points.",
-//       },
-//       {
-//         role: "user",
-//         content: `
-// Explain this code file in 3-5 bullet points.
-
-// ${code}
-//         `,
-//       },
-//     ],
-//   });
-
-//   return completion.choices[0].message.content;
-// }
-
-import OpenAI from "openai";
-
-const client = new OpenAI({
-  apiKey: process.env.OPENROUTER_API_KEY,
-  baseURL: "https://openrouter.ai/api/v1",
-});
-
-export async function summarizeCode(code: string) {
-  const trimmedCode = code.slice(0, 8000);
-
-  const completion =
-    await client.chat.completions.create({
-      model: "openrouter/free",
-      messages: [
-        {
-          role: "system",
-          content: `
+const SUMMARY_SYSTEM_PROMPT = `
 You are a senior software engineer.
 
 Analyze the code file and generate a concise developer-friendly summary.
@@ -80,35 +40,22 @@ Rules:
 - Focus on developer understanding.
 - Use bullet points.
 - Use markdown headings.
-`,
-        },
-        {
-          role: "user",
-          content: `
-Analyze this file:
+`;
 
-${trimmedCode}
-`,
-        },
-      ],
-    });
+export async function summarizeCode(
+  code: string,
+  config: AIClientConfig = PLATFORM_DEFAULT_CONFIG
+): Promise<string> {
+  const trimmedCode = code.slice(0, 8000);
 
-  return (
-    completion.choices[0].message.content ||
-    ""
+  return generateCompletion(
+    config,
+    SUMMARY_SYSTEM_PROMPT,
+    `Analyze this file:\n\n${trimmedCode}`
   );
 }
 
-export async function generateRepositoryOverview(
-  context: string
-) {
-  const completion =
-    await client.chat.completions.create({
-      model: "openrouter/free",
-      messages: [
-        {
-  role: "system",
-  content: `
+const OVERVIEW_SYSTEM_PROMPT = `
 You are a senior software architect.
 
 Analyze the repository and create a premium developer-friendly overview.
@@ -186,48 +133,41 @@ Keep the response concise.
 Use markdown.
 Use bullet points.
 Use emojis.
-`
-},
-        {
-          role: "user",
-          content: context,
-        },
-      ],
-    });
-    
+`;
 
-  return (
-    completion.choices[0].message.content ||
-    ""
-  );
+export async function generateRepositoryOverview(
+  context: string,
+  config: AIClientConfig = PLATFORM_DEFAULT_CONFIG
+): Promise<string> {
+  return generateCompletion(config, OVERVIEW_SYSTEM_PROMPT, context);
 }
 
-export async function generateOnboardingGuide(context: string) {
-  const completion = await client.chat.completions.create({
-    model: "openrouter/free",
-    messages: [
-      {
-        role: "system",
-        content: `
+const ONBOARDING_SYSTEM_PROMPT = `
 You are a senior engineer writing an onboarding guide for a developer who just joined this codebase.
 
 Generate ONLY these sections:
 
-## 🚀 Getting Started
+# Project Overview
 
-Steps to set up and run the project locally. Maximum 6 steps.
+# Tech Stack
 
-## 🗺️ Codebase Map
+# Folder Structure
 
-Explain where to find key logic, organized by folder or file.
+# Key Components
 
-## 🔧 Common Tasks
+# Data Flow
 
-Explain how to do 2-3 common tasks in this codebase (e.g. add an endpoint, add a component).
+# How To Run Locally
 
-## ⚠️ Gotchas
+# Development Workflow
 
-Mention non-obvious pitfalls a new contributor should know about.
+# Recommended Reading Order
+
+# Important Files
+
+# First Contribution Tasks
+
+# Developer Tips
 
 Rules:
 
@@ -235,86 +175,40 @@ Rules:
 - Use markdown.
 - Use bullet points.
 - Do not invent setup steps that aren't supported by the provided context.
-`,
-      },
-      {
-        role: "user",
-        content: `
-Analyze this repository and generate an onboarding guide for a new contributor.
+`;
 
-${context}
-`,
-      },
-    ],
-  });
-
-  return completion.choices[0].message.content || "";
+export async function generateOnboardingGuide(
+  context: string,
+  config: AIClientConfig = PLATFORM_DEFAULT_CONFIG
+): Promise<string> {
+  return generateCompletion(
+    config,
+    ONBOARDING_SYSTEM_PROMPT,
+    `Analyze this repository and generate an onboarding guide for a new contributor.\n\n${context}`
+  );
 }
+
+const CHAT_SYSTEM_PROMPT = `
+You are an expert software engineer.
+
+Answer questions using only the repository context provided.
+If the answer is not found, say:
+"I could not find that information in the repository."
+`;
 
 export async function chatWithRepository(
   context: string,
-  question: string
-) {
-  const completion = await client.chat.completions.create({
-    model: "openrouter/free",
-    messages: [
-      {
-        role: "system",
-        content:  `
-You are a senior software engineer analyzing a GitHub repository.
-
-Rules:
-- Always answer in markdown.
-- Use bullet points whenever possible.
-- Never return large paragraphs.
-- Keep answers concise and structured.
-- Mention relevant files when possible.
-- If information is unavailable, clearly state it.
-
-Response Format:
-
-## Answer
-
-- Point 1
-- Point 2
-- Point 3
-
-## Relevant Files
-
-- file1.ts
-- file2.ts
-      `,
-      },
-      {
-        role: "user",
-        content: `
-Repository Context:
-
-${context}
-
-Question:
-
-${question}
-`,
-      },
-    ],
-  });
-
-  return completion.choices[0].message.content || "";
+  question: string,
+  config: AIClientConfig = PLATFORM_DEFAULT_CONFIG
+): Promise<string> {
+  return generateCompletion(
+    config,
+    CHAT_SYSTEM_PROMPT,
+    `Repository Context:\n\n${context}\n\nQuestion:\n\n${question}`
+  );
 }
 
-export async function generateArchitectureDiagram(
-  context: string
-) {
-  const trimmedContext = context.slice(0, 12000);
-
-  const completion =
-    await client.chat.completions.create({
-      model: "openrouter/free",
-      messages: [
-        {
-          role: "system",
-          content: `
+const ARCHITECTURE_SYSTEM_PROMPT = `
 You are a senior software architect.
 
 Generate ONLY valid Mermaid flowchart syntax.
@@ -360,59 +254,9 @@ ALWAYS USE NODE IDS:
 
 A --> B
 B --> C
-`,
-        },
-        {
-          role: "user",
-          content: `
-Analyze this repository and generate a HIGH LEVEL architecture diagram.
+`;
 
-${trimmedContext}
-`,
-        },
-      ],
-    });
-
-  const response =
-    completion.choices[0].message.content || "";
-
-  console.log(
-    "==== ARCHITECTURE RESPONSE ===="
-  );
-  console.log(response);
-  console.log(
-    "=============================="
-  );
-
-  // Some models (e.g. reasoning models routed through "openrouter/free")
-  // leak their chain-of-thought into the content, which can mention
-  // "graph TD" mid-ramble before the real diagram. Take the LAST match so
-  // we land on the model's final, committed answer instead of its scratch
-  // thinking.
-  const graphTD =
-    response.lastIndexOf("graph TD");
-
-  const graphLR =
-    response.lastIndexOf("graph LR");
-
-  const indexes = [
-    graphTD,
-    graphLR,
-  ].filter((i) => i >= 0);
-
-  if (indexes.length > 0) {
-    const start = Math.max(...indexes);
-
-    return response
-      .slice(start)
-      // The model sometimes glues the graph-type declaration directly onto
-      // the first node (e.g. "graph TDA[Storage]") with no separator, which
-      // Mermaid can't parse. Force a newline after the declaration.
-      .replace(/^(graph (?:TD|LR))(?!\n)/, "$1\n")
-      .trim();
-  }
-
-  return `
+const FALLBACK_DIAGRAM = `
 graph TD
 
 A[Repository]
@@ -426,4 +270,40 @@ B --> C
 C --> D
 D --> E
 `;
+
+export async function generateArchitectureDiagram(
+  context: string,
+  config: AIClientConfig = PLATFORM_DEFAULT_CONFIG
+): Promise<string> {
+  const trimmedContext = context.slice(0, 12000);
+
+  const response = await generateCompletion(
+    config,
+    ARCHITECTURE_SYSTEM_PROMPT,
+    `Analyze this repository and generate a HIGH LEVEL architecture diagram.\n\n${trimmedContext}`
+  );
+
+  // Some models (e.g. reasoning models routed through "openrouter/free")
+  // leak their chain-of-thought into the content, which can mention
+  // "graph TD" mid-ramble before the real diagram. Take the LAST match so
+  // we land on the model's final, committed answer instead of its scratch
+  // thinking.
+  const graphTD = response.lastIndexOf("graph TD");
+  const graphLR = response.lastIndexOf("graph LR");
+
+  const indexes = [graphTD, graphLR].filter((i) => i >= 0);
+
+  if (indexes.length > 0) {
+    const start = Math.max(...indexes);
+
+    return response
+      .slice(start)
+      // The model sometimes glues the graph-type declaration directly onto
+      // the first node (e.g. "graph TDA[Storage]") with no separator, which
+      // Mermaid can't parse. Force a newline after the declaration.
+      .replace(/^(graph (?:TD|LR))(?!\n)/, "$1\n")
+      .trim();
+  }
+
+  return FALLBACK_DIAGRAM;
 }
