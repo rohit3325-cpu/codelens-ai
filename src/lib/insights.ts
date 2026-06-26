@@ -8,6 +8,7 @@ export interface RepositoryInsights {
   javascriptFiles: number;
   testFiles: number;
   configFiles: number;
+  otherFiles: number;
 }
 
 export async function getRepositoryInsights(
@@ -23,6 +24,7 @@ export async function getRepositoryInsights(
   let javascriptFiles = 0;
   let testFiles = 0;
   let configFiles = 0;
+  let otherFiles = 0;
 
   for (const entry of tree) {
     if (entry.path.split("/").includes("node_modules")) continue;
@@ -33,10 +35,29 @@ export async function getRepositoryInsights(
     const dot = name.lastIndexOf(".");
     const ext = dot === -1 ? "" : name.slice(dot);
 
-    if (ext === ".ts" || ext === ".tsx") typescriptFiles++;
-    if (ext === ".js" || ext === ".jsx") javascriptFiles++;
-    if (name.includes(".test")) testFiles++;
-    if (name.includes("config")) configFiles++;
+    let matched = false;
+
+    if (ext === ".ts" || ext === ".tsx") {
+      typescriptFiles++;
+      matched = true;
+    }
+    if (ext === ".js" || ext === ".jsx") {
+      javascriptFiles++;
+      matched = true;
+    }
+    if (name.includes(".test")) {
+      testFiles++;
+      matched = true;
+    }
+    if (name.includes("config")) {
+      configFiles++;
+      matched = true;
+    }
+
+    // Files that don't land in any of the buckets above (Python, CSS,
+    // markdown, images, etc.) still need to show up somewhere, or a repo
+    // with few/no TS or JS files looks like its files went uncounted.
+    if (!matched) otherFiles++;
   }
 
   return {
@@ -45,6 +66,7 @@ export async function getRepositoryInsights(
     javascriptFiles,
     testFiles,
     configFiles,
+    otherFiles,
   };
 }
 

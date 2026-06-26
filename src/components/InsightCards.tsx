@@ -4,6 +4,7 @@ interface Insights {
   javascriptFiles: number;
   testFiles: number;
   configFiles: number;
+  otherFiles: number;
 }
 
 export default function InsightCards({
@@ -17,10 +18,11 @@ export default function InsightCards({
     { label: "JavaScript", value: insights.javascriptFiles, accent: "text-amber-400" },
     { label: "Tests", value: insights.testFiles, accent: "text-emerald-400" },
     { label: "Config", value: insights.configFiles, accent: "text-cyan-400" },
+    { label: "Other", value: insights.otherFiles, accent: "text-purple-400" },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
       {cards.map((card) => (
         <div
           key={card.label}

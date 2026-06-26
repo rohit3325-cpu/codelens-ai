@@ -8,6 +8,7 @@ interface Insights {
   javascriptFiles: number;
   testFiles: number;
   configFiles: number;
+  otherFiles: number;
 }
 
 interface FileEntry {
