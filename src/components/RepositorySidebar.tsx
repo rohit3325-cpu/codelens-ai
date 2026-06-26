@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getRepositoryNavLinks } from "@/lib/repositoryNav";
@@ -12,8 +13,12 @@ export default function RepositorySidebar({ repoId }: { repoId?: string }) {
 
   return (
     <aside className="hidden min-h-screen w-64 flex-col border-r border-neutral-800 bg-neutral-950 p-6 lg:flex">
-      <Link href="/dashboard/repositories" className="mb-10 block text-xl font-bold">
-        CodeLens AI
+      <Link
+        href="/dashboard/repositories"
+        className="mb-10 flex items-center gap-2 text-xl font-bold"
+      >
+        <Image src="/logo6.png" alt="TraceLens AI" width={32} height={32} className="h-8 w-8" />
+        TraceLens AI
       </Link>
 
       {repoId && (

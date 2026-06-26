@@ -1,11 +1,39 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { useClerk, useUser } from "@clerk/nextjs";
+import { loadRazorpayCheckoutScript } from "@/lib/razorpayCheckout";
+import { FREE_PLAN_REPO_LIMIT } from "@/lib/plans";
 
-const PLANS = [
+interface SubscriptionSummary {
+  plan: "free" | "pro";
+  currentPeriodEnd: string | null;
+  reposUsedThisMonth: number;
+  repoLimit: number | null;
+}
+
+interface RazorpayHandlerResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
+interface Plan {
+  name: "Free" | "Pro" | "Team";
+  price: string;
+  period: string;
+  description: string;
+  features: string[];
+  cta?: string;
+  highlighted: boolean;
+}
+
+const PLANS: Plan[] = [
   {
     name: "Free",
-    price: "$0",
+    price: "₹0",
     period: "/mo",
     description: "For trying things out",
     features: [
@@ -14,12 +42,11 @@ const PLANS = [
       "File explorer",
       "Public repos only",
     ],
-    cta: "Get Started",
     highlighted: false,
   },
   {
     name: "Pro",
-    price: "$19",
+    price: "₹999",
     period: "/mo",
     description: "For individual developers",
     features: [
@@ -29,12 +56,11 @@ const PLANS = [
       "Private repositories",
       "Persistent workspace",
     ],
-    cta: "Start Free Trial",
     highlighted: true,
   },
   {
     name: "Team",
-    price: "$49",
+    price: "₹2,999",
     period: "/mo",
     description: "For teams shipping together",
     features: [
@@ -49,6 +75,145 @@ const PLANS = [
 ];
 
 export default function Pricing() {
+  const router = useRouter();
+  const { isLoaded, isSignedIn, user } = useUser();
+  const { openSignIn, openSignUp } = useClerk();
+
+  const [summary, setSummary] = useState<SubscriptionSummary | null>(null);
+  const [isPaying, setIsPaying] = useState(false);
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
+  async function refreshSummary() {
+    try {
+      const res = await fetch("/api/subscription");
+      const data = await res.json();
+
+      if (data.success) {
+        setSummary(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  useEffect(() => {
+    if (!isSignedIn) return;
+
+    (async () => {
+      try {
+        const res = await fetch("/api/subscription");
+        const data = await res.json();
+
+        if (data.success) {
+          setSummary(data);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    })();
+  }, [isSignedIn]);
+
+  function handleFreeClick() {
+    if (!isSignedIn) {
+      openSignUp();
+      return;
+    }
+
+    router.push("/dashboard/repositories");
+  }
+
+  async function handleProClick() {
+    if (!isSignedIn) {
+      openSignIn();
+      return;
+    }
+
+    if (summary?.plan === "pro" || isPaying) {
+      return;
+    }
+
+    setError("");
+    setSuccessMessage("");
+    setIsPaying(true);
+
+    try {
+      await loadRazorpayCheckoutScript();
+
+      const orderRes = await fetch("/api/payments/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: "pro" }),
+      });
+      const orderData = await orderRes.json();
+
+      if (!orderData.success) {
+        setError(orderData.message || "Failed to start checkout.");
+        setIsPaying(false);
+        return;
+      }
+
+      const razorpay = new window.Razorpay({
+        key: orderData.keyId,
+        amount: orderData.amount,
+        currency: orderData.currency,
+        order_id: orderData.orderId,
+        name: "TraceLens AI",
+        description: "Pro plan - 30 days",
+        prefill: {
+          name: user?.fullName ?? undefined,
+          email: user?.primaryEmailAddress?.emailAddress ?? undefined,
+        },
+        theme: { color: "#dc2626" },
+        handler: async (response: RazorpayHandlerResponse) => {
+          try {
+            const verifyRes = await fetch("/api/payments/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(response),
+            });
+            const verifyData = await verifyRes.json();
+
+            if (verifyData.success) {
+              setSuccessMessage("Payment successful! You're now on the Pro plan.");
+              await refreshSummary();
+            } else {
+              setError(verifyData.message || "Payment verification failed.");
+            }
+          } catch (err) {
+            console.error(err);
+            setError("Payment verification failed.");
+          } finally {
+            setIsPaying(false);
+          }
+        },
+        modal: {
+          ondismiss: () => setIsPaying(false),
+        },
+      });
+
+      razorpay.open();
+    } catch (err) {
+      console.error(err);
+      setError("Failed to start checkout.");
+      setIsPaying(false);
+    }
+  }
+
+  function freeCta() {
+    if (!isLoaded) return "Get Started";
+    if (!isSignedIn) return "Sign Up Free";
+    return "Go to Dashboard";
+  }
+
+  function proCta() {
+    if (!isLoaded) return "Start Free Trial";
+    if (!isSignedIn) return "Sign In to Upgrade";
+    if (summary?.plan === "pro") return "Pro Active";
+    if (isPaying) return "Processing...";
+    return "Upgrade to Pro";
+  }
+
   return (
     <section id="pricing" className="py-20">
       <h2 className="text-center text-4xl font-bold sm:text-5xl">
@@ -99,19 +264,60 @@ export default function Pricing() {
               ))}
             </ul>
 
-            <button
-              type="button"
-              className={`mt-8 w-full rounded-xl px-4 py-3 text-sm font-semibold transition ${
-                plan.highlighted
-                  ? "bg-red-600 text-white hover:bg-red-700"
-                  : "border border-neutral-700 text-white hover:border-red-500"
-              }`}
-            >
-              {plan.cta}
-            </button>
+            {plan.name === "Free" && (
+              <button
+                type="button"
+                onClick={handleFreeClick}
+                className="mt-8 w-full rounded-xl border border-neutral-700 px-4 py-3 text-sm font-semibold text-white transition hover:border-red-500"
+              >
+                {freeCta()}
+              </button>
+            )}
+
+            {plan.name === "Pro" && (
+              <button
+                type="button"
+                onClick={handleProClick}
+                disabled={isPaying || summary?.plan === "pro"}
+                className="mt-8 w-full rounded-xl bg-red-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {proCta()}
+              </button>
+            )}
+
+            {plan.name === "Team" && (
+              <button
+                type="button"
+                className="mt-8 w-full rounded-xl border border-neutral-700 px-4 py-3 text-sm font-semibold text-white transition hover:border-red-500"
+              >
+                {plan.cta}
+              </button>
+            )}
+
+            {plan.name === "Free" && isSignedIn && summary?.plan === "free" && (
+              <p className="mt-3 text-center text-xs text-neutral-500">
+                {summary.reposUsedThisMonth}/{FREE_PLAN_REPO_LIMIT} repositories used this month
+              </p>
+            )}
+
+            {plan.name === "Pro" && isSignedIn && summary?.plan === "pro" && summary.currentPeriodEnd && (
+              <p className="mt-3 text-center text-xs text-neutral-500">
+                Renews on {new Date(summary.currentPeriodEnd).toLocaleDateString()}
+              </p>
+            )}
           </motion.div>
         ))}
       </div>
+
+      {(error || successMessage) && (
+        <p
+          className={`mx-auto mt-6 max-w-xl text-center text-sm ${
+            error ? "text-amber-400" : "text-emerald-400"
+          }`}
+        >
+          {error || successMessage}
+        </p>
+      )}
     </section>
   );
 }

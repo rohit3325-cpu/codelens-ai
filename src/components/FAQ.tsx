@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 
 const FAQS = [
   {
-    q: "Is CodeLens AI free to use?",
+    q: "Is TraceLens AI free to use?",
     a: "Yes, our free tier supports up to 5 repositories per month with core features.",
   },
   {
@@ -18,7 +18,7 @@ const FAQS = [
   },
   {
     q: "What languages and frameworks are supported?",
-    a: "CodeLens AI works with any public GitHub repository regardless of language or framework.",
+    a: "TraceLens AI works with any public GitHub repository regardless of language or framework.",
   },
   {
     q: "Is my code stored or used for training?",

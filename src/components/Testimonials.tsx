@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 const TESTIMONIALS = [
   {
     quote:
-      "CodeLens saved me hours when I joined a new team. I understood the entire codebase in 20 minutes.",
+      "TraceLens saved me hours when I joined a new team. I understood the entire codebase in 20 minutes.",
     name: "Alex R.",
     title: "Senior Engineer",
   },

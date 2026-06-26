@@ -102,7 +102,7 @@ export default function Footer() {
 
               <Image
                 src="/logo6.png"
-                alt="CodeLens AI"
+                alt="TraceLens AI"
                 width={80}
                 height={80}
                 className="h-16 w-16"
@@ -110,7 +110,7 @@ export default function Footer() {
 
               <div>
                 <h2 className="text-2xl font-bold">
-                  CodeLens{" "}
+                  TraceLens{" "}
                   <span className="text-red-500">
                     AI
                   </span>
@@ -226,7 +226,7 @@ export default function Footer() {
               select-none
             "
           >
-            CODELENS AI
+            TRACELENS AI
           </h2>
 
         </div>
@@ -236,7 +236,7 @@ export default function Footer() {
         <div className="flex flex-col items-center justify-between gap-4 border-t border-neutral-800 pt-8 sm:flex-row">
 
           <p className="text-xs text-neutral-500">
-            © {new Date().getFullYear()} CodeLens AI.
+            © {new Date().getFullYear()} TraceLens AI.
             All rights reserved.
           </p>
 

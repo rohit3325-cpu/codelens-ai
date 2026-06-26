@@ -94,7 +94,7 @@ export default function SettingsPage() {
       <div>
         <h1 className="text-3xl font-bold">Settings</h1>
         <p className="mt-2 text-neutral-400">
-          Configure how CodeLens AI looks and generates results for you.
+          Configure how TraceLens AI looks and generates results for you.
         </p>
         {savedAt && <p className="mt-2 text-xs text-emerald-400">Saved</p>}
       </div>

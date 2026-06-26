@@ -77,7 +77,7 @@ export default function DocsPage() {
             <div>
               <h1 className="text-4xl font-bold">Documentation</h1>
               <p className="mt-3 text-neutral-400">
-                Everything you need to know to get the most out of CodeLens AI.
+                Everything you need to know to get the most out of TraceLens AI.
               </p>
             </div>
 
@@ -86,7 +86,7 @@ export default function DocsPage() {
               <ol className="mt-4 space-y-3 text-neutral-300">
                 <li className="flex gap-3">
                   <span className="font-semibold text-red-400">1.</span>
-                  Sign in with the button in the top right — CodeLens AI uses Clerk, so
+                  Sign in with the button in the top right — TraceLens AI uses Clerk, so
                   there&apos;s no separate account to create.
                 </li>
                 <li className="flex gap-3">
@@ -111,7 +111,7 @@ export default function DocsPage() {
             <section id="how-it-works">
               <h2 className="text-2xl font-bold">How It Works</h2>
               <p className="mt-4 text-neutral-300">
-                CodeLens AI fetches your repository&apos;s file tree and contents
+                TraceLens AI fetches your repository&apos;s file tree and contents
                 directly from the GitHub API — there&apos;s no cloning and nothing is
                 written to disk. The most relevant files are sent to an AI model to
                 generate an overview, an architecture diagram, and answers to your
@@ -146,7 +146,7 @@ export default function DocsPage() {
             <section id="byok">
               <h2 className="text-2xl font-bold">Bring Your Own AI Key</h2>
               <p className="mt-4 text-neutral-300">
-                By default, every generation uses CodeLens AI&apos;s platform key. If
+                By default, every generation uses TraceLens AI&apos;s platform key. If
                 you&apos;d rather use your own OpenAI, Gemini, Claude or OpenRouter key
                 — for higher rate limits, a specific model, or your own billing — add
                 it under{" "}
