@@ -18,7 +18,7 @@ export default function RepositorySidebar({ repoId }: { repoId?: string }) {
         className="mb-10 flex items-center gap-2 text-xl font-bold"
       >
         <Image src="/logo6.png" alt="TraceLens AI" width={32} height={32} className="h-8 w-8" />
-        TraceLens AI
+        TraceLens <span className="text-red-500">AI</span>
       </Link>
 
       {repoId && (
